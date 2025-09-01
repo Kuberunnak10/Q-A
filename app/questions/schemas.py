@@ -1,12 +1,12 @@
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, field_validator
 from typing import List
 from datetime import datetime
-from app.answers.schemas import Answer as AnswerSchema
 
 class QuestionBase(BaseModel):
     text: str
     
-    @validator('text')
+    @field_validator('text')
+    @classmethod
     def text_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError('Question text cannot be empty')
@@ -18,7 +18,23 @@ class QuestionCreate(QuestionBase):
 class Question(QuestionBase):
     id: int
     created_at: datetime
-    answers: List[AnswerSchema] = Field(default_factory=list)
+
+    class Config:
+        from_attributes = True
+
+# Schema for question with answers (used in GET /questions/{id})
+class QuestionWithAnswers(Question):
+    answers: List['AnswerInQuestion'] = []
+
+    class Config:
+        from_attributes = True
+
+# Simplified answer schema for nested use
+class AnswerInQuestion(BaseModel):
+    id: int
+    user_id: str
+    text: str
+    created_at: datetime
 
     class Config:
         from_attributes = True

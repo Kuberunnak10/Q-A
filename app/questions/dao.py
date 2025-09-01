@@ -11,4 +11,4 @@ class QuestionDAO(BaseDAO):
     async def find_with_answers(cls, session: AsyncSession, question_id: int):
         query = select(cls.model).options(joinedload(cls.model.answers)).filter_by(id=question_id)
         result = await session.execute(query)
-        return result.scalar_one_or_none()
+        return result.unique().scalar_one_or_none()

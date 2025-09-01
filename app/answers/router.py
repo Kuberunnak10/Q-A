@@ -14,7 +14,7 @@ async def create_answer(question_id: int, answer: schemas.AnswerCreate, db: Asyn
     if not question:
         raise HTTPException(status_code=404, detail="Question not found")
     
-    created = await AnswerDAO.add(db, question_id=question_id, **answer.dict())
+    created = await AnswerDAO.add(db, question_id=question_id, **answer.model_dump())
     return created
 
 @router.get("/answers/{answer_id}", response_model=schemas.Answer)

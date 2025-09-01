@@ -1,17 +1,19 @@
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, field_validator
 from datetime import datetime
 
 class AnswerBase(BaseModel):
     text: str
     user_id: str
     
-    @validator('text')
+    @field_validator('text')
+    @classmethod
     def text_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError('Answer text cannot be empty')
         return v.strip()
     
-    @validator('user_id')
+    @field_validator('user_id')
+    @classmethod
     def user_id_not_empty(cls, v):
         if not v or not v.strip():
             raise ValueError('User ID cannot be empty')
