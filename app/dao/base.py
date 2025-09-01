@@ -1,31 +1,28 @@
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
-from sqlalchemy import insert, delete
+from sqlalchemy import select, delete
 
 class BaseDAO:
     model = None
 
     @classmethod
-    async def find_by_id(cls, db_session: AsyncSession, model_id: int):
-        async with db_session() as session:
-            result = await session.execute(select(cls.model).filter_by(id=model_id))
-            return result.scalar_one_or_none()
+    async def find_by_id(cls, session: AsyncSession, model_id: int):
+        result = await session.execute(select(cls.model).filter_by(id=model_id))
+        return result.scalar_one_or_none()
 
     @classmethod
-    async def find_all(cls, db_session: AsyncSession, **filter_by):
-        async with db_session() as session:
-            result = await session.execute(select(cls.model).filter_by(**filter_by))
-            return result.scalars().all()
+    async def find_all(cls, session: AsyncSession, **filter_by):
+        result = await session.execute(select(cls.model).filter_by(**filter_by))
+        return result.scalars().all()
 
     @classmethod
-    async def add(cls, db_session: AsyncSession, **data):
-        async with db_session() as session:
-            result = await session.execute(insert(cls.model).values(**data).returning(cls.model.id))
-            await session.commit()
-            return result.scalar()
+    async def add(cls, session: AsyncSession, **data):
+        instance = cls.model(**data)
+        session.add(instance)
+        await session.commit()
+        await session.refresh(instance)
+        return instance
 
     @classmethod
-    async def delete(cls, db_session: AsyncSession, **filter_by):
-        async with db_session() as session:
-            await session.execute(delete(cls.model).filter_by(**filter_by))
-            await session.commit()
+    async def delete(cls, session: AsyncSession, **filter_by):
+        await session.execute(delete(cls.model).filter_by(**filter_by))
+        await session.commit()
